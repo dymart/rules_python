@@ -19,7 +19,7 @@ load("//python/pip_install:requirements.bzl", _compile_pip_requirements = "compi
 
 compile_pip_requirements = _compile_pip_requirements
 
-def pip_install(requirements, name = "pip", **kwargs):
+def pip_install(requirements = None, name = "pip", **kwargs):
     """Accepts a `requirements.txt` file and installs the dependencies listed within.
 
     Those dependencies become available in a generated `requirements.bzl` file.

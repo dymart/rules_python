@@ -121,13 +121,24 @@ exports_files(["requirements.bzl"])
 def _pip_repository_impl(rctx):
     python_interpreter = _resolve_python_interpreter(rctx)
 
-    if rctx.attr.incremental and not rctx.attr.requirements_lock:
-        fail("Incremental mode requires a requirements_lock attribute be specified.")
+    # if rctx.attr.incremental and not rctx.attr.requirements_lock:
+    #     fail("Incremental mode requires a requirements_lock attribute be specified.")
 
     # We need a BUILD file to load the generated requirements.bzl
     rctx.file("BUILD.bazel", _BUILD_FILE_CONTENTS)
 
     pypath = _construct_pypath(rctx)
+
+    os = rctx.os.name.lower()
+    requirements_txt = rctx.attr.requirements
+
+    if os.startswith("mac os") and rctx.attr.requirements_darwin != None:
+        requirements_txt = rctx.attr.requirements_darwin
+    elif os.startswith("linux") and rctx.attr.requirements_linux != None:
+        requirements_txt = rctx.attr.requirements_linux
+
+    if requirements_txt == None:
+        fail("Expected platform specific requirements attribute, or requirements to be set")
 
     if rctx.attr.incremental:
         args = [
@@ -135,7 +146,7 @@ def _pip_repository_impl(rctx):
             "-m",
             "python.pip_install.parse_requirements_to_bzl",
             "--requirements_lock",
-            rctx.path(rctx.attr.requirements_lock),
+            rctx.path(requirements_txt),
             # pass quiet and timeout args through to child repos.
             "--quiet",
             str(rctx.attr.quiet),
@@ -153,7 +164,7 @@ def _pip_repository_impl(rctx):
             "-m",
             "python.pip_install.extract_wheels",
             "--requirements",
-            rctx.path(rctx.attr.requirements),
+            rctx.path(requirements_txt),
         ]
 
     args += ["--repo", rctx.attr.name, "--repo-prefix", rctx.attr.repo_prefix]
@@ -260,6 +271,12 @@ pip_repository_attrs = {
     "requirements": attr.label(
         allow_single_file = True,
         doc = "A 'requirements.txt' pip requirements file.",
+    ),
+    "requirements_darwin": attr.label(
+        allow_single_file = True,
+    ),
+    "requirements_linux": attr.label(
+        allow_single_file = True,
     ),
     "requirements_lock": attr.label(
         allow_single_file = True,
