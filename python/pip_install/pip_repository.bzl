@@ -166,6 +166,8 @@ def _pip_repository_impl(rctx):
             "--requirements",
             rctx.path(requirements_txt),
         ]
+        if rctx.attr.constraint:
+            args += ["--constraint", rctx.path(rctx.attr.constraint)]
 
     args += ["--repo", rctx.attr.name, "--repo-prefix", rctx.attr.repo_prefix]
     args = _parse_optional_attrs(rctx, args)
@@ -267,6 +269,10 @@ pip_repository_attrs = {
     "incremental": attr.bool(
         default = False,
         doc = "Create the repository in incremental mode.",
+    ),
+    "constraint": attr.label(
+        allow_single_file = True,
+        doc = "A 'constraint.txt' pip constraint file.",
     ),
     "requirements": attr.label(
         allow_single_file = True,
