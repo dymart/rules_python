@@ -58,6 +58,12 @@ def main() -> None:
         required=True,
         help="Path to requirements.txt from where to install dependencies",
     )
+    parser.add_argument(
+        "--constraint",
+        action="store",
+        required=False,
+        help="Path to constraint.txt where to find the versions that should be used",
+    )
     arguments.parse_common_args(parser)
     args = parser.parse_args()
     deserialized_args = dict(vars(args))
@@ -71,6 +77,7 @@ def main() -> None:
         + (["--isolated"] if args.isolated else [])
         + ["wheel", "-r", args.requirements]
         + ["--wheel-dir", os.getcwd()]
+        + (["-c", args.constraint] if args.constraint else [])
         + deserialized_args["extra_pip_args"]
     )
 
